@@ -76,8 +76,15 @@ const commands=[
  new SlashCommandBuilder().setName("botinfo").setDescription("View bot information."),
  new SlashCommandBuilder().setName("roleinfo").setDescription("View role information.").addRoleOption(o=>o.setName("role").setDescription("Role").setRequired(true)),
  new SlashCommandBuilder().setName("channelinfo").setDescription("View channel information.").addChannelOption(o=>o.setName("channel").setDescription("Channel").setRequired(false)),
- new SlashCommandBuilder().setName("diagnostics").setDescription("Run a bot diagnostics check.").setDefaultMemberPermissions(admin)
- new SlashCommandBuilder().setName("rps").setDescription("Play rock paper scissors.").addStringOption(o=>o.setName("choice").setDescription("Your choice").setRequired(true).addChoices({name:"Rock",value:"rock"},{name:"Paper",value:"paper"},{name:"Scissors",value:"scissors"}))
+ new SlashCommandBuilder().setName("diagnostics").setDescription("Run a bot diagnostics check.").setDefaultMemberPermissions(admin), new SlashCommandBuilder().setName("rps").setDescription("Play rock paper scissors.").addStringOption(o=>o.setName("choice").setDescription("Your choice").setRequired(true).addChoices({name:"Rock",value:"rock"},{name:"Paper",value:"paper"},{name:"Scissors",value:"scissors"}))
+
+ new SlashCommandBuilder().setName("selfrole").setDescription("Manage a self role.").addStringOption(o=>o.setName("action").setDescription("add/remove").setRequired(true).addChoices({name:"Add",value:"add"},{name:"Remove",value:"remove"})).addRoleOption(o=>o.setName("role").setDescription("Role").setRequired(true)),
+ new SlashCommandBuilder().setName("voicetemp").setDescription("Create a temporary voice channel."),
+ new SlashCommandBuilder().setName("antiraid").setDescription("Configure anti-raid protection.").setDefaultMemberPermissions(admin).addBooleanOption(o=>o.setName("enabled").setDescription("Enable").setRequired(true)),
+ new SlashCommandBuilder().setName("sticky").setDescription("Set a sticky message.").setDefaultMemberPermissions(mod).addStringOption(o=>o.setName("text").setDescription("Message").setRequired(true)),
+ new SlashCommandBuilder().setName("season").setDescription("View the current server season."),
+ new SlashCommandBuilder().setName("collection").setDescription("View your collectible badges."),
+ new SlashCommandBuilder().setName("backup").setDescription("Export server bot settings.").setDefaultMemberPermissions(admin)
 ];
 async function registerCommands(){
  const rest=new REST({version:"10"}).setToken(process.env.DISCORD_TOKEN);
