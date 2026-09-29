@@ -20,7 +20,7 @@ async function initDatabase(){
  await q(`CREATE TABLE IF NOT EXISTS server_settings(guild_id TEXT PRIMARY KEY,settings JSONB NOT NULL DEFAULT '{}'::jsonb,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE TABLE IF NOT EXISTS giveaways(id BIGSERIAL PRIMARY KEY,guild_id TEXT NOT NULL,channel_id TEXT NOT NULL,message_id TEXT,prize TEXT NOT NULL,winners INT NOT NULL DEFAULT 1,ends_at TIMESTAMPTZ NOT NULL,ended BOOLEAN NOT NULL DEFAULT FALSE,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE TABLE IF NOT EXISTS reminders(id BIGSERIAL PRIMARY KEY,guild_id TEXT NOT NULL,user_id TEXT NOT NULL,channel_id TEXT NOT NULL,text TEXT NOT NULL,due_at TIMESTAMPTZ NOT NULL,done BOOLEAN NOT NULL DEFAULT FALSE)`);
- await q("ALTER TABLE giveaways ADD COLUMN IF NOT EXISTS participants JSONB NOT NULL DEFAULT '{}'::jsonb");
+ await q("ALTER TABLE giveaways ADD COLUMN IF NOT EXISTS participants JSONB NOT NULL DEFAULT '[]'::jsonb");
 }
 async function ensurePlayer(userId,guildId){await q("INSERT INTO players(user_id,guild_id) VALUES($1,$2) ON CONFLICT(user_id,guild_id) DO NOTHING",[userId,guildId]);const {rows}=await q("SELECT * FROM players WHERE user_id=$1 AND guild_id=$2",[userId,guildId]);return rows[0];}
 async function getPlayer(userId,guildId){return ensurePlayer(userId,guildId);}
