@@ -1,39 +1,10 @@
-const jobs = {
-  developer: {
-    name: "Developer",
-    emoji: "💻",
-    description: "Solve a small debugging challenge to earn money and Job XP.",
-    reward: [180, 420],
-    xp: 20
-  },
-  chef: {
-    name: "Chef",
-    emoji: "👨‍🍳",
-    description: "Prepare the order in the correct sequence.",
-    reward: [160, 380],
-    xp: 18
-  },
-  driver: {
-    name: "Driver",
-    emoji: "🚕",
-    description: "Complete a route challenge before time runs out.",
-    reward: [190, 450],
-    xp: 22
-  },
-  detective: {
-    name: "Detective",
-    emoji: "🕵️",
-    description: "Pick the correct clue to progress through a case.",
-    reward: [220, 500],
-    xp: 25
-  },
-  mechanic: {
-    name: "Mechanic",
-    emoji: "🔧",
-    description: "Identify the broken component in a quick repair challenge.",
-    reward: [170, 410],
-    xp: 20
-  }
+const jobs={
+  developer:{name:"Developer",emoji:"💻",reward:[180,420],xp:22,skill:"Debugging"},
+  chef:{name:"Chef",emoji:"👨‍🍳",reward:[160,380],xp:20,skill:"Cooking"},
+  driver:{name:"Driver",emoji:"🚕",reward:[190,450],xp:24,skill:"Routing"},
+  detective:{name:"Detective",emoji:"🕵️",reward:[220,500],xp:26,skill:"Investigation"},
+  mechanic:{name:"Mechanic",emoji:"🔧",reward:[170,410],xp:21,skill:"Repair"},
+  farmer:{name:"Farmer",emoji:"🌾",reward:[130,330],xp:18,skill:"Harvesting"},
+  artist:{name:"Artist",emoji:"🎨",reward:[150,390],xp:20,skill:"Patterning"}
 };
-
-module.exports = { jobs };
+module.exports={jobs};
