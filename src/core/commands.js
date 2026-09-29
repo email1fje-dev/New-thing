@@ -13,6 +13,7 @@ const commands=[
  new SlashCommandBuilder().setName("vehicle").setDescription("View your vehicle."),
  new SlashCommandBuilder().setName("business").setDescription("Manage your business."),
  new SlashCommandBuilder().setName("quest").setDescription("View today's quest."),
+ new SlashCommandBuilder().setName("ticket").setDescription("Open the support ticket panel."),
  new SlashCommandBuilder().setName("leaderboard").setDescription("View the City leaderboard."),
  new SlashCommandBuilder().setName("admin").setDescription("Open the administrator panel.").setDefaultMemberPermissions(PermissionFlagsBits.Administrator.bitfield)
 ];
