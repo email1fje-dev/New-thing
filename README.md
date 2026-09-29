@@ -23,3 +23,16 @@ Set `STAFF_ROLE_ID` to the staff role. Optionally set `TICKET_CATEGORY_ID` so cr
 
 ### Dashboard
 Railway exposes the dashboard through the service port. Set `DASHBOARD_PORT` (usually the platform-provided port) and a strong `DASHBOARD_KEY`. The dashboard is intentionally protected; never put the key in public code.
+
+
+## All-in-one Discord suite
+- 🎫 Private support tickets with claim/close
+- 🛡️ Moderation: warn, kick, ban, timeout, clear
+- 📋 Moderation logs via `MOD_LOG_CHANNEL_ID`
+- 👋 Welcome messages + optional auto-role
+- 🏠 Server/member information utilities
+- 🌐 Protected web dashboard
+- 🏙️ Persistent City economy, jobs, crime, police, pets, achievements, events and districts
+
+### Optional Discord settings
+`WELCOME_CHANNEL_ID`, `AUTO_ROLE_ID`, `MOD_LOG_CHANNEL_ID`, `STAFF_ROLE_ID`, `TICKET_CATEGORY_ID`, and `TICKET_LOG_CHANNEL_ID` can be configured in Railway variables.
