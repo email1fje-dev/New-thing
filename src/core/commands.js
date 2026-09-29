@@ -14,6 +14,12 @@ const commands=[
  new SlashCommandBuilder().setName("business").setDescription("Manage your business."),
  new SlashCommandBuilder().setName("quest").setDescription("View today's quest."),
  new SlashCommandBuilder().setName("ticket").setDescription("Open the support ticket panel."),
+ new SlashCommandBuilder().setName("map").setDescription("Explore City districts."),
+ new SlashCommandBuilder().setName("pet").setDescription("Adopt and care for a City pet."),
+ new SlashCommandBuilder().setName("events").setDescription("See current City events."),
+ new SlashCommandBuilder().setName("achievements").setDescription("View your achievements."),
+ new SlashCommandBuilder().setName("trade").setDescription("Manage player trades."),
+ new SlashCommandBuilder().setName("police").setDescription("Open the fictional Police career panel."),
  new SlashCommandBuilder().setName("leaderboard").setDescription("View the City leaderboard."),
  new SlashCommandBuilder().setName("admin").setDescription("Open the administrator panel.").setDefaultMemberPermissions(PermissionFlagsBits.Administrator.bitfield)
 ];
