@@ -20,6 +20,13 @@ const commands=[
  new SlashCommandBuilder().setName("achievements").setDescription("View your achievements."),
  new SlashCommandBuilder().setName("trade").setDescription("Manage player trades."),
  new SlashCommandBuilder().setName("police").setDescription("Open the fictional Police career panel."),
+ new SlashCommandBuilder().setName("warn").setDescription("Warn a member.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason").setRequired(false)),
+ new SlashCommandBuilder().setName("kick").setDescription("Kick a member.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason").setRequired(false)),
+ new SlashCommandBuilder().setName("ban").setDescription("Ban a member.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason").setRequired(false)),
+ new SlashCommandBuilder().setName("timeout").setDescription("Timeout a member.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addIntegerOption(o=>o.setName("minutes").setDescription("Duration in minutes").setMinValue(1).setMaxValue(40320).setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason").setRequired(false)),
+ new SlashCommandBuilder().setName("clear").setDescription("Delete recent messages.").addIntegerOption(o=>o.setName("amount").setDescription("1-100").setMinValue(1).setMaxValue(100).setRequired(true)),
+ new SlashCommandBuilder().setName("serverinfo").setDescription("View server information."),
+ new SlashCommandBuilder().setName("userinfo").setDescription("View member information.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(false)),
  new SlashCommandBuilder().setName("leaderboard").setDescription("View the City leaderboard."),
  new SlashCommandBuilder().setName("admin").setDescription("Open the administrator panel.").setDefaultMemberPermissions(PermissionFlagsBits.Administrator.bitfield)
 ];
