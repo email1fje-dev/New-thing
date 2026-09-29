@@ -1,33 +1,12 @@
-# GUARDIA — Server City
+# 🏙️ GUARDIA — Server City
 
-A Discord City Simulator / mini-MMO.
+Persistent Discord City Simulator / mini-MMO.
 
-## Current systems
-- Player profiles, XP, money, bank and energy
-- Main jobs with interactive mini-games
-- Side jobs with interactive mini-games
-- City profile and inventory
-- Criminal system with wanted level
-- Jail timers and prison activities
-- Administrator-only admin panel
-- PostgreSQL persistence through DATABASE_URL
+## Included
+Player progression, interactive careers, side jobs, fictional criminal route, wanted/jail, bank, market, inventory, houses, vehicles, businesses, daily quest, leaderboard and Administrator-only panel.
 
 ## Railway
-Set these variables in Railway:
-- DISCORD_TOKEN
-- CLIENT_ID
-- GUILD_ID
-- DATABASE_URL
-
-Never commit real tokens or passwords.
+Set DISCORD_TOKEN, CLIENT_ID, GUILD_ID (recommended), and DATABASE_URL. Use Railway PostgreSQL for DATABASE_URL. Never commit secrets.
 
 ## Commands
-/city
-/profile
-/job
-/sidejob
-/crime
-/jail
-/admin
-
-The project is intentionally modular so new jobs, districts, businesses, vehicles, quests, pets, events and mysteries can be added without rewriting the core.
+/city /profile /job /sidejob /crime /jail /bank /market /inventory /house /vehicle /business /quest /leaderboard /admin
