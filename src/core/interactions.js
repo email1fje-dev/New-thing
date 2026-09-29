@@ -1,177 +1,57 @@
-const {
-  EmbedBuilder,
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  PermissionFlagsBits
-} = require("discord.js");
-const { ensurePlayer, getPlayer, updatePlayer } = require("../database");
-const { jobs } = require("../city/jobs");
-const { sideJobs } = require("../city/sidejobs");
-const { dashboard, cityRow, profileEmbed, startJob, resolveGame } = require("./game");
+const {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder,PermissionFlagsBits}=require("discord.js");
+const {ensurePlayer,getPlayer,updatePlayer,topPlayers,q}=require("../database");
+const {jobs}=require("../city/jobs"); const {sideJobs}=require("../city/sidejobs");
+const {dashboard,mainRow,jobSelect,startActivity,finishActivity,profile,money,rnd}=require("./game");
 
-function registerInteractions(client) {
-  client.on("interactionCreate", async interaction => {
-    try {
-      if (!interaction.isChatInputCommand() && !interaction.isButton() && !interaction.isStringSelectMenu()) return;
-      if (!interaction.guildId) return;
-
-      await ensurePlayer(interaction.user.id, interaction.guildId);
-
-      if (interaction.isChatInputCommand()) {
-        if (interaction.commandName === "city") {
-          const p = await getPlayer(interaction.user.id, interaction.guildId);
-          return interaction.reply({ embeds: [dashboard(p)], components: [cityRow()] });
-        }
-
-        if (interaction.commandName === "profile") {
-          return interaction.reply({ embeds: [await profileEmbed(interaction.user.id, interaction.guildId)] });
-        }
-
-        if (interaction.commandName === "job") {
-          const row = new ActionRowBuilder().addComponents(
-            new StringSelectMenuBuilder()
-              .setCustomId("select:job")
-              .setPlaceholder("Choose a main job")
-              .addOptions(Object.entries(jobs).map(([key, j]) => ({
-                label: j.name,
-                value: key,
-                emoji: j.emoji,
-                description: j.description.slice(0, 90)
-              })))
-          );
-          return interaction.reply({ content: "💼 Choose your job:", components: [row], ephemeral: true });
-        }
-
-        if (interaction.commandName === "sidejob") {
-          const row = new ActionRowBuilder().addComponents(
-            new StringSelectMenuBuilder()
-              .setCustomId("select:sidejob")
-              .setPlaceholder("Choose a side job")
-              .addOptions(Object.entries(sideJobs).map(([key, j]) => ({
-                label: j.name,
-                value: key,
-                emoji: j.emoji
-              })))
-          );
-          return interaction.reply({ content: "💼 Pick a side job:", components: [row], ephemeral: true });
-        }
-
-        if (interaction.commandName === "crime") {
-          return interaction.reply({
-            embeds: [new EmbedBuilder().setTitle("🚨 Criminal District").setDescription("Choose a fictional in-game crime. Risk increases your wanted level.")],
-            components: [
-              new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId("crime:shop").setLabel("Store Robbery").setEmoji("🏪").setStyle(ButtonStyle.Danger),
-                new ButtonBuilder().setCustomId("crime:car").setLabel("Car Theft").setEmoji("🚗").setStyle(ButtonStyle.Danger),
-                new ButtonBuilder().setCustomId("crime:heist").setLabel("Bank Heist").setEmoji("🏦").setStyle(ButtonStyle.Danger)
-              )
-            ]
-          });
-        }
-
-        if (interaction.commandName === "jail") {
-          const p = await getPlayer(interaction.user.id, interaction.guildId);
-          if (!p.jailed_until || new Date(p.jailed_until) <= new Date()) {
-            return interaction.reply({ content: "🔓 You're not in jail." });
-          }
-          const remaining = Math.max(0, Math.ceil((new Date(p.jailed_until) - Date.now()) / 1000));
-          return interaction.reply({
-            embeds: [new EmbedBuilder().setTitle("⛓️ Jail").setDescription(`Time remaining: **${remaining}s**`).addFields({ name: "Activities", value: "Use the buttons below for harmless in-game prison activities." })],
-            components: [new ActionRowBuilder().addComponents(
-              new ButtonBuilder().setCustomId("jail:exercise").setLabel("Exercise").setEmoji("🏋️").setStyle(ButtonStyle.Secondary),
-              new ButtonBuilder().setCustomId("jail:cards").setLabel("Cards").setEmoji("🃏").setStyle(ButtonStyle.Secondary)
-            )]
-          });
-        }
-
-        if (interaction.commandName === "admin") {
-          if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
-            return interaction.reply({ content: "❌ Administrator permission required.", ephemeral: true });
-          }
-          return interaction.reply({
-            embeds: [new EmbedBuilder().setTitle("🛠️ GUARDIA Admin Panel").setDescription("Administrator-only controls.")],
-            components: [
-              new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId("admin:stats").setLabel("Stats").setEmoji("📊").setStyle(ButtonStyle.Primary),
-                new ButtonBuilder().setCustomId("admin:economy").setLabel("Economy").setEmoji("💰").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("admin:events").setLabel("Events").setEmoji("🎲").setStyle(ButtonStyle.Secondary)
-              )
-            ],
-            ephemeral: true
-          });
-        }
-      }
-
-      if (interaction.isStringSelectMenu()) {
-        if (interaction.customId === "select:job") {
-          const key = interaction.values[0];
-          await updatePlayer(interaction.user.id, { job: key });
-          return startJob(interaction, key, false);
-        }
-        if (interaction.customId === "select:sidejob") {
-          return startJob(interaction, interaction.values[0], true);
-        }
-      }
-
-      if (interaction.isButton()) {
-        const [scope, action, key, answer] = interaction.customId.split(":");
-
-        if (scope === "city") {
-          if (action === "profile") return interaction.reply({ embeds: [await profileEmbed(interaction.user.id, interaction.guildId)], ephemeral: true });
-          if (action === "job") {
-            const row = new ActionRowBuilder().addComponents(
-              new StringSelectMenuBuilder().setCustomId("select:job").setPlaceholder("Choose a main job").addOptions(
-                Object.entries(jobs).map(([k, j]) => ({ label: j.name, value: k, emoji: j.emoji }))
-              )
-            );
-            return interaction.reply({ content: "💼 Choose a main job:", components: [row], ephemeral: true });
-          }
-          if (action === "sidejob") return interaction.reply({ content: "Use /sidejob to pick a side job.", ephemeral: true });
-          if (action === "crime") return interaction.reply({ content: "Use /crime to enter the Criminal District.", ephemeral: true });
-        }
-
-        if (scope === "game") {
-          return resolveGame(interaction, action, key, answer, action === "side" ? sideJobs : jobs);
-        }
-
-        if (scope === "crime") {
-          const p = await getPlayer(interaction.user.id, interaction.guildId);
-          const risks = { shop: { reward: [300, 650], wanted: 1, jail: [60, 180] }, car: { reward: [500, 1000], wanted: 2, jail: [120, 300] }, heist: { reward: [1000, 3000], wanted: 3, jail: [240, 600] } };
-          const crime = risks[action];
-          if (!crime) return;
-          const success = Math.random() > 0.35;
-          if (!success) {
-            const sentence = Math.floor((crime.jail[0] + crime.jail[1]) / 2);
-            await updatePlayer(interaction.user.id, { wanted: Math.min(5, p.wanted + crime.wanted), jailed_until: new Date(Date.now() + sentence * 1000) });
-            return interaction.update({ content: `🚔 Caught. Sentence: **${sentence}s**.`, embeds: [], components: [] });
-          }
-          const reward = Math.floor((crime.reward[0] + crime.reward[1]) / 2);
-          await updatePlayer(interaction.user.id, { money: Number(p.money) + reward, wanted: Math.min(5, p.wanted + crime.wanted) });
-          return interaction.update({ content: `🚨 Crime succeeded. You gained **$${reward}**. Wanted level: **${Math.min(5, p.wanted + crime.wanted)}**.`, embeds: [], components: [] });
-        }
-
-        if (scope === "jail") {
-          return interaction.reply({ content: "🃏 Prison activity completed. You gained a little XP.", ephemeral: true });
-        }
-
-        if (scope === "admin") {
-          if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) return interaction.reply({ content: "❌ Administrator permission required.", ephemeral: true });
-          if (action === "stats") return interaction.reply({ content: "📊 Admin analytics module is ready for expansion.", ephemeral: true });
-          if (action === "economy") return interaction.reply({ content: "💰 Economy controls are ready for expansion.", ephemeral: true });
-          if (action === "events") return interaction.reply({ content: "🎲 Event manager is ready for expansion.", ephemeral: true });
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({ content: "⚠️ Something went wrong.", ephemeral: true }).catch(() => {});
-      } else {
-        await interaction.reply({ content: "⚠️ Something went wrong.", ephemeral: true }).catch(() => {});
-      }
-    }
-  });
+const itemCatalog={
+ pizza:{name:"🍕 Pizza",price:80},cola:{name:"🥤 Cola",price:30},medkit:{name:"🧰 Repair Kit",price:250},
+ crystal:{name:"💎 Crystal",price:1200},card:{name:"🃏 Mystery Card",price:400},fuel:{name:"⛽ Fuel Can",price:120}
+};
+function shopEmbed(){return new EmbedBuilder().setTitle("🏪 CITY MARKET").setDescription("Buy useful items with your City cash.").addFields(Object.entries(itemCatalog).map(([k,v])=>({name:v.name,value:`${money(v.price)} — /market buy ${k}`,inline:true})));}
+function inventoryEmbed(p){const inv=p.inventory||{};const lines=Object.entries(inv).filter(([,n])=>n>0).map(([k,n])=>`${itemCatalog[k]?.name||k} × **${n}**`);return new EmbedBuilder().setTitle("🎒 INVENTORY").setDescription(lines.length?lines.join("\n"):"Your inventory is empty.");}
+function jailSeconds(p){return p.jailed_until?Math.max(0,Math.ceil((new Date(p.jailed_until)-Date.now())/1000)):0;}
+async function handleCommand(i){
+ const p=await getPlayer(i.user.id,i.guildId);
+ if(i.commandName==="city")return i.reply({embeds:[dashboard(p)],components:[mainRow()]});
+ if(i.commandName==="profile")return i.reply({embeds:[profile(p,i.user)]});
+ if(i.commandName==="job")return i.reply({content:"💼 Choose your main career:",components:[jobSelect("jobs","job")],ephemeral:true});
+ if(i.commandName==="sidejob")return i.reply({content:"📦 Choose a side job:",components:[jobSelect("side","side")],ephemeral:true});
+ if(i.commandName==="crime")return i.reply({embeds:[new EmbedBuilder().setTitle("🚨 CRIMINAL DISTRICT").setDescription("Fictional in-game activities. Higher reward means higher arrest risk.")],components:[new ActionRowBuilder().addComponents(
+  new ButtonBuilder().setCustomId("crime:shop").setLabel("Store Robbery").setEmoji("🏪").setStyle(ButtonStyle.Danger),
+  new ButtonBuilder().setCustomId("crime:car").setLabel("Car Theft").setEmoji("🚗").setStyle(ButtonStyle.Danger),
+  new ButtonBuilder().setCustomId("crime:heist").setLabel("Bank Heist").setEmoji("🏦").setStyle(ButtonStyle.Danger)
+ )]});
+ if(i.commandName==="jail"){const s=jailSeconds(p);return i.reply({embeds:[new EmbedBuilder().setTitle(s?"⛓️ JAIL":"🔓 NO JAIL").setDescription(s?`Time remaining: **${s}s**`:"You're free.")],components:s?[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("jail:exercise").setLabel("Exercise").setEmoji("🏋️").setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId("jail:cards").setLabel("Cards").setEmoji("🃏").setStyle(ButtonStyle.Secondary))]:[]})}
+ if(i.commandName==="bank")return i.reply({embeds:[new EmbedBuilder().setTitle("🏦 CITY BANK").addFields({name:"Wallet",value:money(p.money),inline:true},{name:"Bank",value:money(p.bank),inline:true})],components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("bank:deposit").setLabel("Deposit $100").setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId("bank:withdraw").setLabel("Withdraw $100").setStyle(ButtonStyle.Secondary))]});
+ if(i.commandName==="market")return i.reply({embeds:[shopEmbed()]});
+ if(i.commandName==="inventory")return i.reply({embeds:[inventoryEmbed(p)]});
+ if(i.commandName==="house")return i.reply({embeds:[new EmbedBuilder().setTitle("🏠 YOUR HOME").setDescription(`${p.house.type} — Level ${p.house.level}\nRating: ⭐ ${p.house.rating}/100`)],components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("house:upgrade").setLabel("Upgrade $5,000").setEmoji("🔨").setStyle(ButtonStyle.Primary))]});
+ if(i.commandName==="vehicle")return i.reply({embeds:[new EmbedBuilder().setTitle("🚗 GARAGE").setDescription(`${p.vehicle.type}\nFuel: ${p.vehicle.fuel}%\nCondition: ${p.vehicle.condition}%`)],components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("vehicle:buy").setLabel("Buy Starter Car $8,000").setEmoji("🚗").setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId("vehicle:fuel").setLabel("Fuel $120").setEmoji("⛽").setStyle(ButtonStyle.Secondary))]});
+ if(i.commandName==="business")return i.reply({embeds:[new EmbedBuilder().setTitle("🏪 YOUR BUSINESS").setDescription(p.business.name?`${p.business.name}\nType: ${p.business.type}\nLevel: ${p.business.level}\nBalance: ${money(p.business.balance)}`:"You don't own a business yet.")],components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("business:open").setLabel("Open Cafe $25,000").setEmoji("🏪").setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId("business:upgrade").setLabel("Upgrade $10,000").setEmoji("⬆️").setStyle(ButtonStyle.Secondary))]});
+ if(i.commandName==="quest")return i.reply({embeds:[new EmbedBuilder().setTitle("🗺️ DAILY QUEST").setDescription("Complete 2 activities today.\n\nReward: **$750 + 40 XP**\n\nProgress is counted automatically from Jobs and Side Jobs.")],components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("quest:claim").setLabel("Claim if complete").setStyle(ButtonStyle.Success))]});
+ if(i.commandName==="leaderboard"){const rows=await topPlayers(i.guildId);return i.reply({embeds:[new EmbedBuilder().setTitle("🏆 CITY LEADERBOARD").setDescription(rows.map((x,n)=>`${n+1}. <@${x.user_id}> — **${money(x.money)}**`).join("\n")||"No citizens yet.") ]});}
+ if(i.commandName==="admin"){if(!i.memberPermissions.has(PermissionFlagsBits.Administrator))return i.reply({content:"❌ Administrator permission required.",ephemeral:true});return i.reply({embeds:[new EmbedBuilder().setTitle("🛠️ GUARDIA ADMIN PANEL").setDescription("Administrator-only control center.")],components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("admin:stats").setLabel("Stats").setEmoji("📊").setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId("admin:economy").setLabel("Economy").setEmoji("💰").setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId("admin:reset").setLabel("Reset Player").setEmoji("♻️").setStyle(ButtonStyle.Danger))],ephemeral:true});}
 }
-
-module.exports = { registerInteractions };
+async function handleButton(i){
+ const [scope,action,key,answer,expected]=i.customId.split(":"); const p=await getPlayer(i.user.id,i.guildId);
+ if(scope==="dash"){if(action==="profile")return i.reply({embeds:[profile(p,i.user)]});if(action==="jobs")return i.reply({content:"💼 Choose your main career:",components:[jobSelect("jobs","job")],ephemeral:true});if(action==="sidejobs")return i.reply({content:"📦 Choose a side job:",components:[jobSelect("side","side")],ephemeral:true});if(action==="market")return i.reply({embeds:[shopEmbed()]});if(action==="crime")return i.reply({content:"Use /crime to enter the Criminal District.",ephemeral:true});}
+ if(scope==="play")return finishActivity(i,key==="jobs"?"job":"side",key,decodeURIComponent(answer),decodeURIComponent(expected));
+ if(scope==="crime"){
+  if(p.jailed_until&&new Date(p.jailed_until)>new Date())return i.reply({content:"⛓️ You're already in jail.",ephemeral:true});
+  const data={shop:{reward:[300,650],wanted:1,sentence:90},car:{reward:[500,1100],wanted:2,sentence:180},heist:{reward:[1200,3000],wanted:3,sentence:360}}[action];if(!data)return;
+  const success=Math.random()>.35; const stats={...(p.stats||{}),crimes:Number(p.stats?.crimes||0)+1};
+  if(!success){stats.arrests=Number(stats.arrests||0)+1;await updatePlayer(i.user.id,i.guildId,{wanted:Math.min(5,p.wanted+data.wanted),jailed_until:new Date(Date.now()+data.sentence*1000),stats});return i.update({content:`🚔 **CAUGHT!**\nSentence: **${data.sentence}s**`,embeds:[],components:[]});}
+  const r=rnd(...data.reward);await updatePlayer(i.user.id,i.guildId,{money:Number(p.money)+r,wanted:Math.min(5,p.wanted+data.wanted),stats});return i.update({content:`🚨 Crime succeeded. You got **${money(r)}**. Wanted: **${Math.min(5,p.wanted+data.wanted)}**`,embeds:[],components:[]});
+ }
+ if(scope==="bank"){if(action==="deposit"){if(Number(p.money)<100)return i.reply({content:"Not enough cash.",ephemeral:true});await updatePlayer(i.user.id,i.guildId,{money:Number(p.money)-100,bank:Number(p.bank)+100});return i.update({content:"🏦 Deposited $100.",embeds:[],components:[]});}if(action==="withdraw"){if(Number(p.bank)<100)return i.reply({content:"Not enough in your bank.",ephemeral:true});await updatePlayer(i.user.id,i.guildId,{money:Number(p.money)+100,bank:Number(p.bank)-100});return i.update({content:"🏦 Withdrew $100.",embeds:[],components:[]});}}
+ if(scope==="house"&&action==="upgrade"){if(Number(p.money)<5000)return i.reply({content:"You need $5,000.",ephemeral:true});const h={...p.house,level:Number(p.house.level)+1,rating:Math.min(100,Number(p.house.rating)+8),type:Number(p.house.level)>=4?"Mansion":p.house.type};await updatePlayer(i.user.id,i.guildId,{money:Number(p.money)-5000,house:h});return i.update({content:"🏠 Home upgraded!",embeds:[],components:[]});}
+ if(scope==="vehicle"){if(action==="buy"){if(p.vehicle.type!=="None")return i.reply({content:"You already own a vehicle.",ephemeral:true});if(Number(p.money)<8000)return i.reply({content:"You need $8,000.",ephemeral:true});await updatePlayer(i.user.id,i.guildId,{money:Number(p.money)-8000,vehicle:{type:"City Compact",fuel:100,condition:100}});return i.update({content:"🚗 Vehicle purchased!",embeds:[],components:[]});}if(action==="fuel"){if(p.vehicle.type==="None")return i.reply({content:"Buy a vehicle first.",ephemeral:true});if(Number(p.money)<120)return i.reply({content:"You need $120.",ephemeral:true});await updatePlayer(i.user.id,i.guildId,{money:Number(p.money)-120,vehicle:{...p.vehicle,fuel:100}});return i.update({content:"⛽ Tank filled.",embeds:[],components:[]});}}
+ if(scope==="business"){if(action==="open"){if(p.business.name)return i.reply({content:"You already own a business.",ephemeral:true});if(Number(p.money)<25000)return i.reply({content:"You need $25,000.",ephemeral:true});await updatePlayer(i.user.id,i.guildId,{money:Number(p.money)-25000,business:{name:"City Cafe",type:"Cafe",level:1,balance:0,rating:50}});return i.update({content:"🏪 Your City Cafe is open!",embeds:[],components:[]});}if(action==="upgrade"){if(!p.business.name)return i.reply({content:"Open a business first.",ephemeral:true});if(Number(p.money)<10000)return i.reply({content:"You need $10,000.",ephemeral:true});await updatePlayer(i.user.id,i.guildId,{money:Number(p.money)-10000,business:{...p.business,level:Number(p.business.level)+1,rating:Math.min(100,Number(p.business.rating)+5)}});return i.update({content:"⬆️ Business upgraded!",embeds:[],components:[]});}}
+ if(scope==="quest"){const total=Number(p.stats?.jobs||0)+Number(p.stats?.sidejobs||0);if(total<2)return i.reply({content:"🗺️ Not completed yet. Play two activities first.",ephemeral:true});return i.reply({content:"🎉 Quest reward: **$750 + 40 XP**!",ephemeral:true});}
+ if(scope==="jail")return i.reply({content:jailSeconds(p)?"⛓️ Prison activity completed.":"🔓 You're free.",ephemeral:true});
+ if(scope==="admin"){if(!i.memberPermissions.has(PermissionFlagsBits.Administrator))return i.reply({content:"❌ Administrator permission required.",ephemeral:true});if(action==="stats"){const {rows}=await q("SELECT COUNT(*)::int AS members,COALESCE(SUM(money),0)::bigint AS cash FROM players WHERE guild_id=$1",[i.guildId]);return i.reply({content:`📊 Citizens: **${rows[0].members}**\n💰 Total cash: **${money(rows[0].cash)}**`,ephemeral:true});}if(action==="economy")return i.reply({content:"💰 Economy controls are modular and ready for expansion.",ephemeral:true});return i.reply({content:"♻️ Select a target before using destructive admin actions.",ephemeral:true});}
+}
+async function registerInteractions(client){
+ client.on("interactionCreate",async i=>{try{if(!i.guildId)return;if(i.isChatInputCommand()){await ensurePlayer(i.user.id,i.guildId);return handleCommand(i);}if(i.isStringSelectMenu()){if(i.customId==="pick:job"){const k=i.values[0];await updatePlayer(i.user.id,i.guildId,{job:k});return startActivity(i,k,"job");}if(i.customId==="pick:side")return startActivity(i,i.values[0],"side");}if(i.isButton())return handleButton(i);}catch(e){console.error(e);const m={content:"⚠️ Something went wrong. Check Railway logs.",ephemeral:true};if(i.replied||i.deferred)await i.followUp(m).catch(()=>{});else await i.reply(m).catch(()=>{});}});
+}
+module.exports={registerInteractions};
