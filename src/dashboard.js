@@ -23,7 +23,7 @@ function startDashboard(client){
    if(!guild){res.writeHead(400,{"content-type":"application/json"});return res.end(JSON.stringify({error:"GUILD_ID is required for dashboard stats"}));}
    const {rows}=await q("SELECT COUNT(*)::int members,COALESCE(SUM(money),0)::bigint cash,COALESCE(SUM(bank),0)::bigint bank,COALESCE(SUM(wanted),0)::int wanted FROM players WHERE guild_id=$1",[guild]);
    const row=rows[0];
-   res.writeHead(200,{"content-type":"application/json"});return res.end(JSON.stringify({Citizens:row.members,"Wallet_Cash":"$"+Number(row.cash).toLocaleString(),"Bank_Money":"$"+Number(row.bank).toLocaleString(),"Total_Wanted:":row.wanted,"Bot:client.user?.tag||"GUARDIA"}));
+   res.writeHead(200,{"content-type":"application/json"});return res.end(JSON.stringify({Citizens:row.members,"Wallet_Cash":"$"+Number(row.cash).toLocaleString(),"Bank_Money":"$"+Number(row.bank).toLocaleString(),"Total_Wanted":row.wanted,"Bot":client.user?.tag||"GUARDIA"}));
   }
   res.writeHead(404);res.end("Not found");
  });
