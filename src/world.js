@@ -19,7 +19,7 @@ const pets={dog:["🐶","Dog"],cat:["🐱","Cat"],fox:["🦊","Fox"],parrot:["�
 async function worldCommand(i){
  const p=await getPlayer(i.user.id,i.guildId);
  if(i.commandName==="map"){
-  return i.reply({embeds:[new EmbedBuilder().setTitle("🗺️ GUARDIA CITY MAP").setDescription(districts.map((d,n)=>`${n+1}. ${d[1]} **${d[0]}** — ${d[2]} — ${d[3]}`).join("\n")).addFields({name:"Current District",value:p.district})]});
+  return i.reply({embeds:[new EmbedBuilder().setTitle("🗺️ CITY MAP").setDescription(districts.map((d,n)=>`${n+1}. ${d[1]} **${d[0]}** — ${d[2]} — ${d[3]}`).join("\n")).addFields({name:"Current District",value:p.district})]});
  }
  if(i.commandName==="events"){
   const day=Math.floor(Date.now()/86400000),event=events[day%events.length];
