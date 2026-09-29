@@ -9,7 +9,7 @@ const addXp=(p,amount)=>({xp:Number(p.xp)+amount,level:Math.floor((Number(p.xp)+
 function bar(v,max=100){const n=Math.round((v/max)*10);return "█".repeat(Math.max(0,n))+"░".repeat(Math.max(0,10-n));}
 
 function dashboard(p){
- return new EmbedBuilder().setColor(0x5865f2).setTitle("🏙️ GUARDIA — SERVER CITY")
+ return new EmbedBuilder().setColor(0x5865f2).setTitle("🏙️ SERVER CITY")
  .setDescription("Your persistent life inside the City.")
  .addFields(
   {name:"💰 Cash",value:money(p.money),inline:true},{name:"🏦 Bank",value:money(p.bank),inline:true},
