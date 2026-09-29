@@ -1,4 +1,7 @@
-const {REST,Routes,SlashCommandBuilder,PermissionFlagsBits}=require("discord.js");
+const {REST,Routes,SlashCommandBuilder,PermissionFlagsBits,ChannelType}=require("discord.js");
+
+const admin=PermissionFlagsBits.Administrator.bitfield;
+const mod=PermissionFlagsBits.ManageGuild.bitfield;
 const commands=[
  new SlashCommandBuilder().setName("city").setDescription("Open your City dashboard."),
  new SlashCommandBuilder().setName("profile").setDescription("View your City profile."),
@@ -13,22 +16,41 @@ const commands=[
  new SlashCommandBuilder().setName("vehicle").setDescription("View your vehicle."),
  new SlashCommandBuilder().setName("business").setDescription("Manage your business."),
  new SlashCommandBuilder().setName("quest").setDescription("View today's quest."),
- new SlashCommandBuilder().setName("ticket").setDescription("Open or manage the ticket panel."),
+ new SlashCommandBuilder().setName("ticket").setDescription("Post or manage the support panel."),
  new SlashCommandBuilder().setName("map").setDescription("Explore City districts."),
  new SlashCommandBuilder().setName("pet").setDescription("Adopt and care for a City pet."),
  new SlashCommandBuilder().setName("events").setDescription("See current City events."),
  new SlashCommandBuilder().setName("achievements").setDescription("View your achievements."),
  new SlashCommandBuilder().setName("trade").setDescription("Manage player trades."),
  new SlashCommandBuilder().setName("police").setDescription("Open the fictional Police career panel."),
- new SlashCommandBuilder().setName("warn").setDescription("Warn a member.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason").setRequired(false)),
- new SlashCommandBuilder().setName("kick").setDescription("Kick a member.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason").setRequired(false)),
- new SlashCommandBuilder().setName("ban").setDescription("Ban a member.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason").setRequired(false)),
- new SlashCommandBuilder().setName("timeout").setDescription("Timeout a member.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addIntegerOption(o=>o.setName("minutes").setDescription("Duration in minutes").setMinValue(1).setMaxValue(40320).setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason").setRequired(false)),
- new SlashCommandBuilder().setName("clear").setDescription("Delete recent messages.").addIntegerOption(o=>o.setName("amount").setDescription("1-100").setMinValue(1).setMaxValue(100).setRequired(true)),
- new SlashCommandBuilder().setName("serverinfo").setDescription("View server information."),
- new SlashCommandBuilder().setName("userinfo").setDescription("View member information.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(false)),
  new SlashCommandBuilder().setName("leaderboard").setDescription("View the City leaderboard."),
- new SlashCommandBuilder().setName("admin").setDescription("Open the administrator panel.").setDefaultMemberPermissions(PermissionFlagsBits.Administrator.bitfield)
+ new SlashCommandBuilder().setName("admin").setDescription("Open the administrator panel.").setDefaultMemberPermissions(admin),
+
+ new SlashCommandBuilder().setName("warn").setDescription("Warn a member.").setDefaultMemberPermissions(mod).addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason")),
+ new SlashCommandBuilder().setName("kick").setDescription("Kick a member.").setDefaultMemberPermissions(mod).addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason")),
+ new SlashCommandBuilder().setName("ban").setDescription("Ban a member.").setDefaultMemberPermissions(mod).addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason")),
+ new SlashCommandBuilder().setName("timeout").setDescription("Timeout a member.").setDefaultMemberPermissions(mod).addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addIntegerOption(o=>o.setName("minutes").setDescription("Duration").setMinValue(1).setMaxValue(40320).setRequired(true)).addStringOption(o=>o.setName("reason").setDescription("Reason")),
+ new SlashCommandBuilder().setName("clear").setDescription("Delete recent messages.").setDefaultMemberPermissions(mod).addIntegerOption(o=>o.setName("amount").setDescription("1-100").setMinValue(1).setMaxValue(100).setRequired(true)),
+ new SlashCommandBuilder().setName("serverinfo").setDescription("View server information."),
+ new SlashCommandBuilder().setName("userinfo").setDescription("View member information.").addUserOption(o=>o.setName("user").setDescription("Member")),
+ new SlashCommandBuilder().setName("setup").setDescription("Open the server setup panel.").setDefaultMemberPermissions(admin),
+ new SlashCommandBuilder().setName("config").setDescription("View or change bot configuration.").setDefaultMemberPermissions(admin).addStringOption(o=>o.setName("key").setDescription("Setting").setRequired(false)).addStringOption(o=>o.setName("value").setDescription("Value").setRequired(false)),
+ new SlashCommandBuilder().setName("automod").setDescription("Configure automatic moderation.").setDefaultMemberPermissions(mod).addBooleanOption(o=>o.setName("enabled").setDescription("Enable AutoMod").setRequired(true)),
+ new SlashCommandBuilder().setName("welcome").setDescription("Set the welcome channel.").setDefaultMemberPermissions(admin).addChannelOption(o=>o.setName("channel").setDescription("Welcome channel").addChannelTypes(ChannelType.GuildText).setRequired(true)),
+ new SlashCommandBuilder().setName("autorole").setDescription("Set the automatic member role.").setDefaultMemberPermissions(admin).addRoleOption(o=>o.setName("role").setDescription("Role").setRequired(true)),
+ new SlashCommandBuilder().setName("logs").setDescription("Set moderation logs channel.").setDefaultMemberPermissions(admin).addChannelOption(o=>o.setName("channel").setDescription("Logs channel").addChannelTypes(ChannelType.GuildText).setRequired(true)),
+ new SlashCommandBuilder().setName("verify").setDescription("Post a verification panel.").setDefaultMemberPermissions(admin),
+ new SlashCommandBuilder().setName("giveaway").setDescription("Start a giveaway.").setDefaultMemberPermissions(mod).addStringOption(o=>o.setName("prize").setDescription("Prize").setRequired(true)).addIntegerOption(o=>o.setName("minutes").setDescription("Duration in minutes").setMinValue(1).setMaxValue(10080).setRequired(true)).addIntegerOption(o=>o.setName("winners").setDescription("Number of winners").setMinValue(1).setMaxValue(20)),
+ new SlashCommandBuilder().setName("poll").setDescription("Create a poll.").setDefaultMemberPermissions(mod).addStringOption(o=>o.setName("question").setDescription("Question").setRequired(true)).addStringOption(o=>o.setName("options").setDescription("Options separated by |").setRequired(true)),
+ new SlashCommandBuilder().setName("suggest").setDescription("Send a suggestion.").addStringOption(o=>o.setName("text").setDescription("Suggestion").setRequired(true)),
+ new SlashCommandBuilder().setName("level").setDescription("View your level."),
+ new SlashCommandBuilder().setName("rank").setDescription("View your server rank."),
+ new SlashCommandBuilder().setName("remind").setDescription("Set a reminder.").addIntegerOption(o=>o.setName("minutes").setDescription("Minutes").setMinValue(1).setMaxValue(10080).setRequired(true)).addStringOption(o=>o.setName("text").setDescription("Reminder").setRequired(true)),
+ new SlashCommandBuilder().setName("afk").setDescription("Set an AFK status.").addStringOption(o=>o.setName("reason").setDescription("Reason")),
+ new SlashCommandBuilder().setName("role").setDescription("Add or remove a role from a member.").setDefaultMemberPermissions(mod).addStringOption(o=>o.setName("action").setDescription("add/remove").setRequired(true).addChoices({name:"Add",value:"add"},{name:"Remove",value:"remove"})).addUserOption(o=>o.setName("user").setDescription("Member").setRequired(true)).addRoleOption(o=>o.setName("role").setDescription("Role").setRequired(true)),
+ new SlashCommandBuilder().setName("serverstats").setDescription("View server bot statistics."),
+ new SlashCommandBuilder().setName("8ball").setDescription("Ask the magic 8-ball.").addStringOption(o=>o.setName("question").setDescription("Question").setRequired(true)),
+ new SlashCommandBuilder().setName("rps").setDescription("Play rock paper scissors.").addStringOption(o=>o.setName("choice").setDescription("Your choice").setRequired(true).addChoices({name:"Rock",value:"rock"},{name:"Paper",value:"paper"},{name:"Scissors",value:"scissors"}))
 ];
 async function registerCommands(){
  const rest=new REST({version:"10"}).setToken(process.env.DISCORD_TOKEN);
