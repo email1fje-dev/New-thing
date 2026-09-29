@@ -1,7 +1,8 @@
-const {ChannelType,PermissionFlagsBits,ActionRowBuilder,ButtonBuilder,ButtonStyle,EmbedBuilder}=require("discord.js");
+const {ChannelType,PermissionFlagsBits,ActionRowBuilder,ButtonBuilder,ButtonStyle,EmbedBuilder,StringSelectMenuBuilder}=require("discord.js");
+const {getSettings}=require("./database");
 
 const activeTickets=new Set();
-function staffAllowed(member){const role=process.env.STAFF_ROLE_ID;return member.permissions.has(PermissionFlagsBits.Administrator)||Boolean(role&&member.roles.cache.has(role));}
+async function staffAllowed(member,guildId){const s=await getSettings(guildId);const role=s.staffRole||process.env.STAFF_ROLE_ID;return member.permissions.has(PermissionFlagsBits.Administrator)||Boolean(role&&member.roles.cache.has(role));}
 function slug(name){return name.toLowerCase().replace(/[^a-z0-9-]/g,"").slice(0,18)||"user";}
 
 async function sendTicketPanel(channel){
@@ -12,19 +13,19 @@ async function sendTicketPanel(channel){
  return channel.send({embeds:[embed],components:[row]});
 }
 async function ticketCommand(i){
- if(!staffAllowed(i.member))return i.reply({content:"❌ Only staff can post the ticket panel.",ephemeral:true});
+ if(!(await staffAllowed(i.member,i.guildId)))return i.reply({content:"❌ Only staff can post the ticket panel.",ephemeral:true});
  await sendTicketPanel(i.channel);return i.reply({content:"✅ Ticket panel posted in this channel.",ephemeral:true});
 }
 async function createTicket(i){
  const existing=i.guild.channels.cache.find(c=>c.topic==="ticket-owner:"+i.user.id);
  if(existing){activeTickets.add(i.user.id);return i.reply({content:"🎫 You already have an open ticket: <#"+existing.id+">",ephemeral:true});}
- const staffRole=process.env.STAFF_ROLE_ID;
+ const settings=await getSettings(i.guildId);const staffRole=settings.staffRole||process.env.STAFF_ROLE_ID;
  const overwrites=[
   {id:i.guild.id,deny:[PermissionFlagsBits.ViewChannel]},
   {id:i.user.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.AttachFiles]}
  ];
  if(staffRole)overwrites.push({id:staffRole,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.AttachFiles,PermissionFlagsBits.ManageMessages]});
- const ch=await i.guild.channels.create({name:"ticket-"+slug(i.user.username),type:ChannelType.GuildText,parent:process.env.TICKET_CATEGORY_ID||null,topic:"ticket-owner:"+i.user.id,permissionOverwrites:overwrites});
+ const ch=await i.guild.channels.create({name:"ticket-"+slug(i.user.username),type:ChannelType.GuildText,parent:settings.ticketCategory||process.env.TICKET_CATEGORY_ID||null,topic:"ticket-owner:"+i.user.id,permissionOverwrites:overwrites});
  activeTickets.add(i.user.id);
  const controls=new ActionRowBuilder().addComponents(
   new ButtonBuilder().setCustomId("ticket:claim").setLabel("Claim").setEmoji("🛡️").setStyle(ButtonStyle.Secondary),
@@ -34,16 +35,16 @@ async function createTicket(i){
   .setDescription("Welcome <@"+i.user.id+">!\n\nPlease describe your issue and a staff member will help you shortly.")
   .addFields({name:"Opened by",value:"<@"+i.user.id+">",inline:true},{name:"Status",value:"🟡 Open",inline:true}).setFooter({text:"Support"});
  await ch.send({content:"<@"+i.user.id+">"+(staffRole?" <@&"+staffRole+">":""),embeds:[embed],components:[controls]});
- if(process.env.TICKET_LOG_CHANNEL_ID){const log=i.guild.channels.cache.get(process.env.TICKET_LOG_CHANNEL_ID);if(log)await log.send({embeds:[new EmbedBuilder().setTitle("🎫 Ticket Created").setDescription("<@"+i.user.id+"> opened <#"+ch.id+">").setTimestamp()]}).catch(()=>{});}
+ if(settings.ticketLog||process.env.TICKET_LOG_CHANNEL_ID){const log=i.guild.channels.cache.get(settings.ticketLog||process.env.TICKET_LOG_CHANNEL_ID);if(log)await log.send({embeds:[new EmbedBuilder().setTitle("🎫 Ticket Created").setDescription("<@"+i.user.id+"> opened <#"+ch.id+">").setTimestamp()]}).catch(()=>{});}
  return i.reply({content:"✅ Your ticket has been created: <#"+ch.id+">",ephemeral:true});
 }
 async function claimTicket(i){
- if(!staffAllowed(i.member))return i.reply({content:"❌ Staff permission required.",ephemeral:true});
+ if(!(await staffAllowed(i.member,i.guildId)))return i.reply({content:"❌ Staff permission required.",ephemeral:true});
  await i.channel.send({embeds:[new EmbedBuilder().setColor(0x57f287).setTitle("🛡️ Ticket Claimed").setDescription("<@"+i.user.id+"> is now handling this ticket.")]});
  return i.reply({content:"✅ Ticket claimed.",ephemeral:true});
 }
 async function closeTicket(i){
- if(!staffAllowed(i.member)&&i.channel.topic!=="ticket-owner:"+i.user.id)return i.reply({content:"❌ Only the ticket owner or staff can close this ticket.",ephemeral:true});
+ if(!(await staffAllowed(i.member,i.guildId))&&i.channel.topic!=="ticket-owner:"+i.user.id)return i.reply({content:"❌ Only the ticket owner or staff can close this ticket.",ephemeral:true});
  const owner=i.channel.topic?.replace("ticket-owner:","");if(owner)activeTickets.delete(owner);
  if(process.env.TICKET_LOG_CHANNEL_ID){const log=i.guild.channels.cache.get(process.env.TICKET_LOG_CHANNEL_ID);if(log)await log.send({embeds:[new EmbedBuilder().setTitle("🔒 Ticket Closed").setDescription(i.channel.name+" was closed by <@"+i.user.id+">").setTimestamp()]}).catch(()=>{});}
  await i.reply({content:"🔒 Ticket will be closed in 3 seconds..."});setTimeout(()=>i.channel.delete().catch(()=>{}),3000);return true;
