@@ -5,9 +5,9 @@ function staffAllowed(member){const role=process.env.STAFF_ROLE_ID;return member
 function slug(name){return name.toLowerCase().replace(/[^a-z0-9-]/g,"").slice(0,18)||"user";}
 
 async function sendTicketPanel(channel){
- const embed=new EmbedBuilder().setColor(0x5865f2).setTitle("🎫 GUARDIA SUPPORT")
+ const embed=new EmbedBuilder().setColor(0x5865f2).setTitle("🎫 SUPPORT CENTER")
   .setDescription("Need help? Click the button below to open a private support ticket.\n\n• 🔒 Private ticket channel\n• 🛡️ Staff can claim it\n• 👥 Only you and staff can see it\n• 🎫 One active ticket per member")
-  .setFooter({text:"GUARDIA • Support Center"});
+  .setFooter({text:"Support Center"});
  const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("ticket:create").setLabel("Open Ticket").setEmoji("🎫").setStyle(ButtonStyle.Primary));
  return channel.send({embeds:[embed],components:[row]});
 }
@@ -32,7 +32,7 @@ async function createTicket(i){
  );
  const embed=new EmbedBuilder().setColor(0x5865f2).setTitle("🎫 Support Ticket")
   .setDescription("Welcome <@"+i.user.id+">!\n\nPlease describe your issue and a staff member will help you shortly.")
-  .addFields({name:"Opened by",value:"<@"+i.user.id+">",inline:true},{name:"Status",value:"🟡 Open",inline:true}).setFooter({text:"GUARDIA Support"});
+  .addFields({name:"Opened by",value:"<@"+i.user.id+">",inline:true},{name:"Status",value:"🟡 Open",inline:true}).setFooter({text:"Support"});
  await ch.send({content:"<@"+i.user.id+">"+(staffRole?" <@&"+staffRole+">":""),embeds:[embed],components:[controls]});
  if(process.env.TICKET_LOG_CHANNEL_ID){const log=i.guild.channels.cache.get(process.env.TICKET_LOG_CHANNEL_ID);if(log)await log.send({embeds:[new EmbedBuilder().setTitle("🎫 Ticket Created").setDescription("<@"+i.user.id+"> opened <#"+ch.id+">").setTimestamp()]}).catch(()=>{});}
  return i.reply({content:"✅ Your ticket has been created: <#"+ch.id+">",ephemeral:true});
