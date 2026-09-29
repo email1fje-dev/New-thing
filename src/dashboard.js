@@ -4,7 +4,7 @@ const {q}=require("./database");
 function page(){
  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Discord Bot Dashboard</title>
  <style>body{margin:0;background:#0b0d12;color:#eee;font-family:system-ui;padding:28px}h1{margin:0 0 8px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:22px}.card{background:#151922;border:1px solid #252b38;border-radius:16px;padding:20px}.v{font-size:28px;font-weight:800;margin-top:8px}.muted{color:#9299aa}</style></head>
- <body><h1>🏙️ BOT DASHBOARD</h1><div class="muted">All-in-one Discord City & Community Dashboard</div>
+ <body><h1>🤖 BOT DASHBOARD</h1><div class="muted">All-in-one Discord community dashboard</div>
  <div class="grid" id="stats"><div class="card">Loading…</div></div>
  <script>
  async function load(){const key=new URLSearchParams(location.search).get("key")||"";const r=await fetch("/api/stats?key="+encodeURIComponent(key));const d=await r.json();document.getElementById("stats").innerHTML=d.error?'<div class="card">'+d.error+'</div>':Object.entries(d).map(([k,v])=>'<div class="card"><div class="muted">'+k+'</div><div class="v">'+v+'</div></div>').join("")}load();
