@@ -7,7 +7,7 @@ const itemCatalog={
  pizza:{name:"🍕 Pizza",price:80},cola:{name:"🥤 Cola",price:30},medkit:{name:"🧰 Repair Kit",price:250},
  crystal:{name:"💎 Crystal",price:1200},card:{name:"🃏 Mystery Card",price:400},fuel:{name:"⛽ Fuel Can",price:120}
 };
-function shopEmbed(){return new EmbedBuilder().setTitle("🏪 CITY MARKET").setDescription("Buy useful items with your City cash.").addFields(Object.entries(itemCatalog).map(([k,v])=>({name:v.name,value:`${money(v.price)} — /market buy ${k}`,inline:true})));}
+function shopEmbed(){return new EmbedBuilder().setTitle("🏪 CITY MARKET").setDescription("Choose an item to buy.").addFields(Object.entries(itemCatalog).map(([k,v])=>({name:v.name,value:money(v.price),inline:true})));}
 function inventoryEmbed(p){const inv=p.inventory||{};const lines=Object.entries(inv).filter(([,n])=>n>0).map(([k,n])=>`${itemCatalog[k]?.name||k} × **${n}**`);return new EmbedBuilder().setTitle("🎒 INVENTORY").setDescription(lines.length?lines.join("\n"):"Your inventory is empty.");}
 function jailSeconds(p){return p.jailed_until?Math.max(0,Math.ceil((new Date(p.jailed_until)-Date.now())/1000)):0;}
 async function handleCommand(i){
@@ -35,7 +35,7 @@ async function handleCommand(i){
 async function handleButton(i){
  const [scope,action,key,answer,expected]=i.customId.split(":"); const p=await getPlayer(i.user.id,i.guildId);
  if(scope==="dash"){if(action==="profile")return i.reply({embeds:[profile(p,i.user)]});if(action==="jobs")return i.reply({content:"💼 Choose your main career:",components:[jobSelect("jobs","job")],ephemeral:true});if(action==="sidejobs")return i.reply({content:"📦 Choose a side job:",components:[jobSelect("side","side")],ephemeral:true});if(action==="market")return i.reply({embeds:[shopEmbed()]});if(action==="crime")return i.reply({content:"Use /crime to enter the Criminal District.",ephemeral:true});}
- if(scope==="play")return finishActivity(i,key==="jobs"?"job":"side",key,decodeURIComponent(answer),decodeURIComponent(expected));
+ if(scope==="play")return finishActivity(i,action==="job"?"job":"side",key,decodeURIComponent(answer),decodeURIComponent(expected));
  if(scope==="crime"){
   if(p.jailed_until&&new Date(p.jailed_until)>new Date())return i.reply({content:"⛓️ You're already in jail.",ephemeral:true});
   const data={shop:{reward:[300,650],wanted:1,sentence:90},car:{reward:[500,1100],wanted:2,sentence:180},heist:{reward:[1200,3000],wanted:3,sentence:360}}[action];if(!data)return;
