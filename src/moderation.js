@@ -1,8 +1,8 @@
 const {EmbedBuilder,PermissionFlagsBits}=require("discord.js");
-const {q,updatePlayer}=require("./database");
+const {q,updatePlayer,getSettings}=require("./database");
 function modOnly(i){return i.memberPermissions?.has(PermissionFlagsBits.ManageGuild)||i.memberPermissions?.has(PermissionFlagsBits.ModerateMembers)||i.memberPermissions?.has(PermissionFlagsBits.Administrator);}
 async function log(guild,action,target,reason,moderator){
- const chId=process.env.MOD_LOG_CHANNEL_ID;if(!chId)return;
+ const s=await getSettings(guild.id);const chId=s.logChannel||process.env.MOD_LOG_CHANNEL_ID;if(!chId)return;
  const ch=guild.channels.cache.get(chId);if(!ch)return;
  await ch.send({embeds:[new EmbedBuilder().setTitle("🛡️ "+action).addFields(
  {name:"Target",value:"<@"+target.id+"> ("+target.id+")",inline:true},
