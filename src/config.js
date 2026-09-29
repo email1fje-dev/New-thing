@@ -1,0 +1,1 @@
+module.exports={cityName:"GUARDIA",maxWanted:5,startingMoney:1000,startingEnergy:100};
