@@ -11,7 +11,6 @@ const commands=[
  new SlashCommandBuilder().setName("jail").setDescription("View your jail status."),
  new SlashCommandBuilder().setName("bank").setDescription("Open your bank."),
  new SlashCommandBuilder().setName("market").setDescription("Open the City market."),
- new SlashCommandBuilder().setName("inventory").setDescription("View your inventory."),
  new SlashCommandBuilder().setName("house").setDescription("View your property."),
  new SlashCommandBuilder().setName("vehicle").setDescription("View your vehicle."),
  new SlashCommandBuilder().setName("business").setDescription("Manage your business."),
