@@ -7,7 +7,6 @@ const {handleTicket}=require("./ticket");
 const {startDashboard}=require("./dashboard");
 const {worldCommand,handleWorldButton}=require("./world");
 const {handleModeration}=require("./moderation");
-const {handleMemberJoin:legacyWelcome}=require("./welcome");
 const {handleFeatureCommand,handleFeatureButton,handleMessage,handleMemberJoin,processTimers}=require("./features");
 if(!process.env.DISCORD_TOKEN||!process.env.CLIENT_ID)throw new Error("DISCORD_TOKEN and CLIENT_ID are required.");
 const client=new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMembers,GatewayIntentBits.GuildMessages,GatewayIntentBits.MessageContent,GatewayIntentBits.GuildMessageReactions]});
@@ -15,5 +14,10 @@ const client=new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.Gui
 client.on("interactionCreate",async i=>{try{if(await handleModeration(i))return;}catch(e){console.error("Moderation error:",e);if(!i.replied&&!i.deferred)await i.reply({content:"⚠️ Moderation error.",ephemeral:true}).catch(()=>{});}});
 client.on("interactionCreate",async i=>{try{if(i.isChatInputCommand()&&["map","pet","events","achievements","trade","police"].includes(i.commandName))await worldCommand(i);}catch(e){console.error("World error:",e);}});
 client.on("interactionCreate",async i=>{try{if(await handleWorldButton(i))return;await handleTicket(i);}catch(e){console.error("Ticket error:",e);if(!i.replied&&!i.deferred)await i.reply({content:"⚠️ Ticket system error.",ephemeral:true}).catch(()=>{});}});client.on("guildMemberAdd",handleMemberJoin);
-client.on("interactionCreate",async i=>{try{if(i.isChatInputCommand())await handleFeatureCommand(i);else if(i.isButton())await handleFeatureButton(i);}catch(e){console.error("Feature error:",e);if(!i.replied&&!i.deferred)await i.reply({content:"⚠️ Something went wrong.",ephemeral:true}).catch(()=>{});}});client.on("messageCreate",m=>handleMessage(m).catch(console.error));client.once("ready",()=>{console.log(`🏙️ Bot online as ${client.user.tag}`);setInterval(()=>processTimers(client).catch(console.error),30000);});await client.login(process.env.DISCORD_TOKEN);
+client.on("interactionCreate",async i=>{try{if(i.isChatInputCommand())await handleFeatureCommand(i);else if(i.isButton())await handleFeatureButton(i);}catch(e){console.error("Feature error:",e);if(!i.replied&&!i.deferred)await i.reply({content:"⚠️ Something went wrong.",ephemeral:true}).catch(()=>{});}});client.on("messageCreate",m=>handleMessage(m).catch(console.error));
+client.on("voiceStateUpdate",async(oldState,newState)=>{
+ if(!oldState.channelId||oldState.channelId===newState.channelId)return;
+ const ch=oldState.channel;
+ if(ch.name?.startsWith("🔊 ")&&ch.members.size===0&&ch.permissionOverwrites.cache.has(oldState.id))await ch.delete().catch(()=>{});
+});client.once("ready",()=>{console.log(`🏙️ Bot online as ${client.user.tag}`);setInterval(()=>processTimers(client).catch(console.error),30000);});await client.login(process.env.DISCORD_TOKEN);
 startDashboard(client);})().catch(e=>{console.error(e);process.exit(1);});
